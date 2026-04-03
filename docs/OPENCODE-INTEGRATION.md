@@ -93,9 +93,10 @@ OpenWork manages three coordinated services:
     │   OpenCode   │  │  OpenWork      │  │  OpenCode Router   │
     │   Engine     │  │  Server        │  │                    │
     │              │  │                │  │  • Telegram bridge  │
-    │  HTTP :4096  │  │  HTTP :8787    │  │  • Slack bridge     │
-    │  (random)    │  │  (48000-51000) │  │  • Health :3005     │
-    └──────────────┘  └────────────────┘  └────────────────────┘
+    │  HTTP         │  │  HTTP          │  │  • Slack bridge     │
+    │  (ephemeral)  │  │  (48000-51000) │  │  • Health           │
+    └──────────────┘  └────────────────┘  │  (ephemeral)        │
+                                          └────────────────────┘
 ```
 
 ---
@@ -848,20 +849,20 @@ The orchestrator can run services in isolated containers:
 openwork start --workspace /path --sandbox docker
 ```
 
-All three services run inside a single Docker container:
+All three services run inside a single Docker container with **fixed internal ports** (unlike host mode which uses dynamically allocated ports):
 
 ```
 ┌─────────────── Docker Container ───────────────┐
 │                                                  │
-│  OpenCode (:4096)                               │
-│  OpenWork Server (:8787) ←──── port mapped ──►  │
-│  OpenCode Router (:3005)                        │
+│  OpenCode (:4096 internal)                      │
+│  OpenWork Server (:8787 internal) ── mapped ──► │
+│  OpenCode Router (:3005 internal)               │
 │                                                  │
 │  Mounted: workspace, persist-dir, config-dir    │
 └──────────────────────────────────────────────────┘
 ```
 
-Internal ports are stable (4096, 8787, 3005); only the OpenWork Server port is mapped to the host.
+Inside the container, ports are fixed constants (`SANDBOX_INTERNAL_OPENCODE_PORT = 4096`, `SANDBOX_INTERNAL_OPENWORK_PORT = 8787`, `SANDBOX_INTERNAL_OPENCODE_ROUTER_HEALTH_PORT = 3005`). Only the OpenWork Server port is mapped to a dynamically allocated host port. This differs from host mode where all ports are ephemeral or from a randomized range.
 
 ### Apple Container Sandbox
 
